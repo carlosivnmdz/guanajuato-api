@@ -1,58 +1,270 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🚀 Guanajuato API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Backend REST desarrollado con **Laravel 12** para la aplicación **Guanajuato Flutter**.
 
-## About Laravel
+La API proporciona autenticación mediante OTP, consulta de departamentos, productos y perfil de usuario consumiendo el ERP Passport.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# 📌 Características
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- ✅ API REST
+- ✅ Laravel 12
+- ✅ Laravel Sanctum
+- ✅ Autenticación OTP
+- ✅ Registro de usuarios
+- ✅ Inicio de sesión
+- ✅ Consulta de productos
+- ✅ Consulta de departamentos
+- ✅ Búsqueda de productos
+- ✅ Integración con Passport ERP
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# 🛠 Tecnologías
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Tecnología | Versión |
+|------------|----------|
+| PHP | 8.3 |
+| Laravel | 12 |
+| MySQL | 8 |
+| Sanctum | ✔ |
+| Gmail SMTP | OTP por correo |
+| Passport ERP | API de productos |
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+---
 
-## Agentic Development
+# 📂 Estructura
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
-
-```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+```
+app/
+├── Http/
+│   └── Controllers/
+│       └── Api/
+│
+├── Mail/
+├── Models/
+├── Services/
+│
+routes/
+config/
+database/
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+---
 
-## Contributing
+# 🔐 Autenticación
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Registro
 
-## Code of Conduct
+```
+POST /api/auth/register
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Verificar OTP
 
-## Security Vulnerabilities
+```
+POST /api/auth/verify-otp
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Login
 
-## License
+```
+POST /api/auth/login
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Verificar OTP de Login
+
+```
+POST /api/auth/login/verify
+```
+
+## Usuario autenticado
+
+```
+GET /api/auth/me
+```
+
+## Cerrar sesión
+
+```
+POST /api/auth/logout
+```
+
+---
+
+# 📦 Productos
+
+## Listado
+
+```
+GET /api/products
+```
+
+Parámetros soportados
+
+| Parámetro | Descripción |
+|-----------|-------------|
+| page | Página |
+| per_page | Productos por página |
+| department | Departamento |
+
+---
+
+## Buscar
+
+```
+GET /api/products/search
+```
+
+Ejemplo
+
+```
+/api/products/search?q=pollo
+```
+
+---
+
+## Departamentos
+
+```
+GET /api/products/departments
+```
+
+---
+
+## Detalle
+
+```
+GET /api/products/{itemId}
+```
+
+---
+
+## Limpiar caché
+
+```
+POST /api/products/cache/clear
+```
+
+---
+
+# 🚀 Instalación
+
+## Clonar
+
+```bash
+git clone https://github.com/carlosivnmdz/guanajuato-api.git
+
+cd guanajuato-api
+```
+
+## Instalar dependencias
+
+```bash
+composer install
+```
+
+## Configurar variables
+
+```bash
+cp .env.example .env
+```
+
+## Generar llave
+
+```bash
+php artisan key:generate
+```
+
+## Ejecutar migraciones
+
+```bash
+php artisan migrate
+```
+
+## Iniciar servidor
+
+```bash
+php artisan serve
+```
+
+---
+
+# ⚙ Variables de entorno
+
+El proyecto requiere configurar:
+
+```
+APP_NAME=
+APP_ENV=
+
+DB_CONNECTION=
+DB_HOST=
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
+
+MAIL_HOST=
+MAIL_PORT=
+MAIL_USERNAME=
+MAIL_PASSWORD=
+
+PASSPORT_API_URL=
+PASSPORT_API_KEY=
+```
+---
+
+# 🏗 Arquitectura
+
+```
+Flutter
+      │
+      │ HTTPS
+      ▼
+Laravel API
+      │
+      ├── AuthController
+      ├── ProductController
+      │
+      ▼
+Passport ERP API
+      │
+      ▼
+ERP
+```
+
+---
+
+# 📅 Roadmap
+
+## v0.1.0
+
+- ✅ Proyecto Laravel
+
+## v0.2.0
+
+- ✅ Autenticación OTP
+
+## v0.3.0
+
+- ✅ Productos
+
+## v0.4.0
+
+- ✅ Departamentos
+
+## v0.5.0
+
+- ✅ Integración Passport ERP
+
+---
+
+# 🔗 Repositorios
+
+| Proyecto | Descripción |
+|----------|-------------|
+| **guanajuato-api** | Backend Laravel |
+| **guanajuato-flutter** | Aplicación Flutter |
+
+---
