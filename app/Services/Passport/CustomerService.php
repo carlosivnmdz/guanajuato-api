@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Services\Passport;
+
+use Illuminate\Database\Eloquent\Model;
+use RuntimeException;
+use SimpleXMLElement;
+
+class CustomerService
+{
+    public function __construct(
+        protected PassportClient $client,
+        protected EmailService $emailService,
+        protected PhoneService $phoneService,
+    ) {
+    }
+
+    /**
+     * Crea un cliente completo en CATAPULT.
+     */
+    public function create(Model $customer): string
+    {
+        $customerId = $this->generateCustomerId();
+
+        $payload = [
+            [
+                'action' => 'U',
+                'customerId' => $customerId,
+                'firstName' => $customer->first_name,
+                'middleName' => $customer->middle_name,
+                'lastName' => $customer->last_name,
+                'birthDate' => optional($customer->birthday)?->format('Y-m-d'),
+                'priceLevel' => 2,
+                'pf1' => $customer->country,
+            ]
+        ];
+
+        $this->client->post(
+            '/batch/customerMaintenance',
+            $payload
+        );
+
+        if (!empty($customer->email)) {
+            $this->emailService->create(
+                $customerId,
+                $customer->email
+            );
+        }
+
+        if (!empty($customer->phone)) {
+            $this->phoneService->create(
+                $customerId,
+                $customer->phone
+            );
+        }
+
+        return $customerId;
+    }
+
+    /**
+     * Busca un cliente.
+     */
+    public function find(
+        string $customerId
+    ): ?SimpleXMLElement {
+
+        $xml = $this->client->getXml(
+            '/Customer',
+            [
+                'customerId' => $customerId,
+            ]
+        );
+
+        if (!isset($xml->row)) {
+            return null;
+        }
+
+        $row = $xml->row;
+
+        if (
+            count($row->attributes()) === 0 &&
+            count($row->children()) === 0 &&
+            trim((string) $row) === ''
+        ) {
+            return null;
+        }
+
+        return $row;
+    }
+
+    /**
+     * Verifica existencia.
+     */
+    public function exists(
+        string $customerId
+    ): bool {
+        return $this->find($customerId) !== null;
+    }
+
+    /**
+     * Genera un Customer ID único.
+     */
+    protected function generateCustomerId(): string
+    {
+        $attempts = 0;
+
+        do {
+
+            if ($attempts >= 20) {
+                throw new RuntimeException(
+                    'Unable to generate Customer ID.'
+                );
+            }
+
+            $customerId = (string) random_int(
+                1000000000,
+                9999999999
+            );
+
+            $attempts++;
+
+        } while ($this->exists($customerId));
+
+        return $customerId;
+    }
+}
