@@ -58,6 +58,36 @@ class CustomerService
     }
 
     /**
+     * Actualiza un cliente que ya existe en CATAPULT (nombre,
+     * apellido, fecha de nacimiento y país). El modelo debe traer
+     * ya cargado su `customer_id`.
+     *
+     * Se manda el mismo payload de "action: U" que usa create(),
+     * pero sin generar un customerId nuevo ni volver a fijar
+     * priceLevel (eso es solo de alta, no queremos pisarlo en
+     * cada edición de perfil).
+     */
+    public function update(Model $customer): void
+    {
+        $payload = [
+            [
+                'action' => 'U',
+                'customerId' => $customer->customer_id,
+                'firstName' => $customer->first_name,
+                'middleName' => $customer->middle_name,
+                'lastName' => $customer->last_name,
+                'birthDate' => optional($customer->birthday)?->format('Y-m-d'),
+                'pf1' => $customer->country,
+            ]
+        ];
+
+        $this->client->post(
+            '/batch/customerMaintenance',
+            $payload
+        );
+    }
+
+    /**
      * Busca un cliente.
      */
     public function find(

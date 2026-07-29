@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Requests\VerifyLoginOtpRequest;
 use App\Http\Requests\VerifyOtpRequest;
 use App\Services\Auth\AuthService;
@@ -101,6 +102,24 @@ class AuthController extends Controller
             'data' => $this->authService->me(
                 $request->user()
             ),
+        ]);
+    }
+
+    /**
+     * Actualiza el nombre y apellido del usuario autenticado.
+     */
+    public function updateProfile(
+        UpdateProfileRequest $request
+    ): JsonResponse {
+        $user = $this->authService->updateProfile(
+            $request->user(),
+            $request->validated()
+        );
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Profile updated successfully.',
+            'data' => $user,
         ]);
     }
 

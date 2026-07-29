@@ -67,6 +67,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     /**
+     * Actualizar perfil (nombre y apellido)
+     */
+    Route::put('/auth/me', [AuthController::class, 'updateProfile']);
+
+    /**
      * Cerrar sesión
      */
     Route::post('/auth/logout', [AuthController::class, 'logout']);

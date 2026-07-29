@@ -3,6 +3,7 @@
 namespace App\Services\Auth;
 
 use App\Models\User;
+use App\Services\Passport\CustomerService;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
@@ -13,6 +14,7 @@ class AuthService
         protected VerifyOtpService $verifyOtpService,
         protected LoginService $loginService,
         protected VerifyLoginService $verifyLoginService,
+        protected CustomerService $customerService,
     ) {
     }
 
@@ -69,6 +71,32 @@ class AuthService
     public function me(User $user): User
     {
         return $user;
+    }
+
+    /**
+     * Actualiza el nombre, apellido, fecha de nacimiento y país del
+     * usuario autenticado.
+     *
+     * Primero sincroniza el cambio con CATAPULT (el POS real, el
+     * que de verdad usa el negocio) y solo si eso funciona lo
+     * guarda en la base local. Si se guardara primero localmente
+     * y CATAPULT fallara, quedarían desincronizados sin que nadie
+     * se diera cuenta.
+     */
+    public function updateProfile(User $user, array $data): User
+    {
+        $user->fill([
+            'first_name' => $data['first_name'],
+            'last_name' => $data['last_name'] ?? null,
+            'birthday' => $data['birthday'] ?? $user->birthday,
+            'country' => $data['country'] ?? $user->country,
+        ]);
+
+        $this->customerService->update($user);
+
+        $user->save();
+
+        return $user->fresh();
     }
 
     /**
