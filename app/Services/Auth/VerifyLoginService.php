@@ -37,6 +37,28 @@ class VerifyLoginService
             ]);
         }
 
+        // Haber verificado el OTP es prueba de que el usuario sí
+        // tiene acceso a ese correo/teléfono. Antes esto solo se
+        // marcaba en el registro, así que una cuenta que nunca lo
+        // tuvo marcado (por sync desde CATAPULT, o por ser anterior
+        // a este campo) se quedaba "no verificada" para siempre
+        // aunque el usuario sí completara el OTP al iniciar sesión.
+        $justVerified = false;
+
+        if (! empty($data['email']) && ! $user->email_verified_at) {
+            $user->email_verified_at = now();
+            $justVerified = true;
+        }
+
+        if (! empty($data['phone']) && ! $user->phone_verified_at) {
+            $user->phone_verified_at = now();
+            $justVerified = true;
+        }
+
+        if ($justVerified) {
+            $user->save();
+        }
+
         // Limpiar el RateLimiter
         RateLimiter::clear(
             'login:' . strtolower($user->email)
