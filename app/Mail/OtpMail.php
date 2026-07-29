@@ -13,16 +13,18 @@ class OtpMail extends Mailable
     use Queueable, SerializesModels;
 
     public string $code;
+    public ?string $firstName;
 
-    public function __construct(string $code)
+    public function __construct(string $code, ?string $firstName = null)
     {
         $this->code = $code;
+        $this->firstName = $firstName;
     }
 
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your Guanajuato verification code',
+            subject: 'Tu código de verificación de Carnicería Guanajuato',
         );
     }
 

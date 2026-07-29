@@ -18,7 +18,7 @@ class MailService
         try {
 
             Mail::to($model->email)
-                ->send(new OtpMail($code));
+                ->send(new OtpMail($code, $model->first_name ?? null));
 
         } catch (Throwable $e) {
 

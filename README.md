@@ -191,6 +191,77 @@ php artisan serve
 
 ---
 
+# 🔄 Sincronización de clientes CATAPULT → Laravel
+
+## Por qué existe
+
+El login solo busca usuarios en la tabla local `users`. Si un cliente
+se dio de alta directo en tienda (CATAPULT), y nunca por la app, no
+tiene fila local — no puede iniciar sesión aunque sea cliente real.
+Este sync resuelve eso: refleja hacia `users` los clientes que ya
+existen en CATAPULT.
+
+## Cómo se dispara
+
+No usa cron. El servidor puede no tener acceso a crontab, y en
+desarrollo local tampoco hay forma de que un cron externo le llegue.
+En vez de eso, el middleware `MaybeSyncCatapultCustomers` (colgado
+del grupo `api` en `bootstrap/app.php`) se aprovecha del tráfico
+normal: en cada request revisa si ya pasaron 20 minutos desde el
+último intento (usando un lock en cache) y, si sí, despacha
+`SyncCatapultCustomersJob` con `->afterResponse()` — corre después de
+responderle al cliente, así que no le agrega latencia a nada.
+
+## Qué hace, paso a paso
+
+1. `CustomerService::pullChanges()` — `GET /Customer` en CATAPULT.
+   Trae todos los clientes la primera vez; después, solo los
+   modificados desde el último sync (`modifiedSince`, guardado en
+   cache).
+2. `CustomerSyncService::sync()` — por cada cliente que regresa:
+   - Si ya existe localmente (por `customer_id`), **solo actualiza
+     nombre, apellido, fecha de nacimiento y país**.
+   - Si no existe, crea la fila nueva, y en ese caso sí toma el
+     correo/teléfono que traiga CATAPULT como punto de partida.
+
+## Importante: nunca toca correo/teléfono de un usuario que ya existe
+
+`billToEmailAddress`/`billToPhoneNumber` (los campos que expone
+`GET /Customer`) casi siempre vienen vacíos, y no son lo mismo que el
+correo/teléfono que la app usa para el login por OTP. Una versión
+anterior de este sync sí los sobreescribía en cada corrida y le borró
+el correo a clientes que ya se habían registrado por la app — bug ya
+corregido. Correo y teléfono solo se escriben una vez, al crear el
+registro por primera vez; nunca se vuelven a tocar después.
+
+## De solo lectura hacia CATAPULT
+
+Todo el flujo usa únicamente `GET /Customer`. Nunca llama al
+`POST /batch/customerMaintenance` (eso solo lo usan el registro y la
+edición de perfil, que sí escriben hacia CATAPULT). El sync jamás
+modifica nada del lado de CATAPULT.
+
+## Forzar un sync manual (para probar)
+
+```bash
+php artisan tinker
+```
+
+```php
+app(App\Services\Passport\CustomerSyncService::class)->sync();
+```
+
+## Archivos relevantes
+
+```
+app/Http/Middleware/MaybeSyncCatapultCustomers.php
+app/Jobs/SyncCatapultCustomersJob.php
+app/Services/Passport/CustomerSyncService.php
+app/Services/Passport/CustomerService.php (método pullChanges)
+```
+
+---
+
 # ⚙ Variables de entorno
 
 El proyecto requiere configurar:

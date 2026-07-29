@@ -88,6 +88,35 @@ class CustomerService
     }
 
     /**
+     * Trae clientes de CATAPULT nuevos o modificados desde cierta
+     * fecha (o todos si no se especifica). Se usa para el sync
+     * hacia la BD local, para que los clientes dados de alta directo
+     * en tienda (sin pasar por la app) también puedan usarla.
+     *
+     * @return SimpleXMLElement[]
+     */
+    public function pullChanges(?string $modifiedSince = null): array
+    {
+        $query = $modifiedSince
+            ? ['modifiedSince' => $modifiedSince]
+            : [];
+
+        $xml = $this->client->getXml('/Customer', $query);
+
+        if (!isset($xml->row)) {
+            return [];
+        }
+
+        $rows = [];
+
+        foreach ($xml->row as $row) {
+            $rows[] = $row;
+        }
+
+        return $rows;
+    }
+
+    /**
      * Busca un cliente.
      */
     public function find(
