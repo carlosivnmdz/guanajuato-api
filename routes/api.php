@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\WalletController;
 
 /*
 |--------------------------------------------------------------------------
@@ -75,5 +76,15 @@ Route::middleware('auth:sanctum')->group(function () {
      * Cerrar sesión
      */
     Route::post('/auth/logout', [AuthController::class, 'logout']);
+
+    /**
+     * Pase de Apple Wallet de la tarjeta digital
+     */
+    Route::get('/wallet/apple-pass', [WalletController::class, 'applePass']);
+
+    /**
+     * Pase de Google Wallet de la tarjeta digital
+     */
+    Route::get('/wallet/google-pass', [WalletController::class, 'googlePass']);
 
 });
