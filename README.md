@@ -149,6 +149,59 @@ POST /api/products/cache/clear
 
 ---
 
+# 💳 Wallet (tarjeta digital)
+
+Endpoints para agregar la tarjeta digital del cliente a Apple Wallet /
+Google Wallet. Requieren sesión (`auth:sanctum`).
+
+## Pase de Apple Wallet
+
+```
+GET /api/wallet/apple-pass
+```
+
+## Pase de Google Wallet
+
+```
+GET /api/wallet/google-pass
+```
+
+### Estado actual
+
+La generación de pases todavía no está implementada — cada endpoint
+depende de `WalletService`, que hoy solo valida si la plataforma está
+habilitada (`config/wallet.php` / `APPLE_WALLET_ENABLED`,
+`GOOGLE_WALLET_ENABLED`) y, si lo está, lanza una excepción "pendiente
+de implementar". Mientras eso no cambie, ambos endpoints responden:
+
+- `503` con `{"success": false, "message": "..."}` si la plataforma
+  está deshabilitada o si aún no se implementó la generación del pase.
+
+Falta por hacer:
+
+- **Apple**: armar el `.pkpass` (pass.json + manifest + firma PKCS#7
+  con el certificado Pass Type ID y el certificado WWDR de Apple) a
+  partir del cliente autenticado, subirlo y devolver su URL pública.
+- **Google**: armar el objeto de loyalty pass, firmarlo como JWT con
+  el service account, y devolver `https://pay.google.com/gp/v/save/<jwt>`.
+
+Variables de entorno relacionadas (ver `.env.example`):
+
+```
+APPLE_WALLET_ENABLED=
+APPLE_PASS_TYPE_IDENTIFIER=
+APPLE_TEAM_IDENTIFIER=
+APPLE_PASS_CERTIFICATE_PATH=
+APPLE_PASS_CERTIFICATE_PASSWORD=
+APPLE_WWDR_CERTIFICATE_PATH=
+
+GOOGLE_WALLET_ENABLED=
+GOOGLE_WALLET_ISSUER_ID=
+GOOGLE_WALLET_SERVICE_ACCOUNT_PATH=
+```
+
+---
+
 # 🚀 Instalación
 
 ## Clonar
@@ -328,6 +381,11 @@ ERP
 ## v0.5.0
 
 - ✅ Integración Passport ERP
+
+## v0.6.0
+
+- 🚧 Wallet (Apple Wallet / Google Wallet) — endpoints y config listos,
+  generación de pases pendiente
 
 ---
 
