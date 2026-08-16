@@ -96,6 +96,74 @@ class CustomerSyncService
     }
 
     /**
+     * Busca UN cliente puntual en CATAPULT por correo o teléfono y lo
+     * sincroniza a la BD local si lo encuentra. Sirve de fallback
+     * para el login cuando el usuario no existe todavía
+     * localmente — cubre al cliente recién dado de alta en tienda
+     * que no quiere esperar hasta el próximo sync periódico (cada
+     * 20 min) para poder entrar a la app.
+     *
+     * A diferencia de sync(), aquí se compara contra el catálogo
+     * completo de CATAPULT (sin `modifiedSince`), porque el cliente
+     * pudo haberse dado de alta hace tiempo y apenas hoy intentar
+     * usar la app por primera vez.
+     */
+    public function syncOne(?string $email, ?string $phone): ?User
+    {
+        if (empty($email) && empty($phone)) {
+            return null;
+        }
+
+        $rows = $this->customerService->pullChanges();
+
+        foreach ($rows as $row) {
+            $rowEmail = (string) $row['billToEmailAddress'];
+            $rowPhone = (string) $row['billToPhoneNumber'];
+
+            $matchesEmail = $email
+                && $rowEmail !== ''
+                && strtolower($rowEmail) === strtolower($email);
+
+            $matchesPhone = $phone
+                && $rowPhone !== ''
+                && $rowPhone === $phone;
+
+            if (! $matchesEmail && ! $matchesPhone) {
+                continue;
+            }
+
+            $customerId = (string) $row['customerId'];
+
+            if ($customerId === '') {
+                return null;
+            }
+
+            $user = User::where('customer_id', $customerId)->first();
+            $profile = $this->mapProfileFields($row);
+
+            if ($user) {
+                $user->fill($profile);
+
+                if ($user->isDirty()) {
+                    $user->save();
+                }
+
+                return $user;
+            }
+
+            $contact = $this->mapContactFields($row, $customerId);
+
+            return User::create(array_merge(
+                ['customer_id' => $customerId],
+                $profile,
+                $contact,
+            ));
+        }
+
+        return null;
+    }
+
+    /**
      * Campos de perfil, seguros de refrescar en cualquier usuario
      * (nuevo o existente). Los campos vacíos se guardan como null en
      * vez de cadena vacía (CATAPULT los regresa como "" cuando no

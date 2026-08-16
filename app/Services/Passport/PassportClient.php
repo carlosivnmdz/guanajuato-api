@@ -28,6 +28,8 @@ class PassportClient
             'X-ECRS-APIKEY' => $this->apiKey,
             'Accept' => 'application/xml',
         ])
+        ->connectTimeout(5)
+        ->timeout(10)
         ->post(
             "{$this->baseUrl}{$endpoint}?batch={$this->batch()}",
             $payload
@@ -41,6 +43,8 @@ class PassportClient
             'X-ECRS-APIKEY' => $this->apiKey,
             'Accept' => 'application/xml',
         ])
+        ->connectTimeout(5)
+        ->timeout(10)
         ->get(
             "{$this->baseUrl}{$endpoint}",
             $query

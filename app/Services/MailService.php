@@ -12,13 +12,19 @@ class MailService
 {
     /**
      * Envía el código OTP por correo.
+     *
+     * Se encola (en vez de mandarse en la misma petición) porque el
+     * envío por SMTP puede tardar varios segundos; hacerlo síncrono
+     * bloqueaba la respuesta del login/registro hasta que Gmail
+     * confirmaba el envío, y el cliente podía marcar timeout aunque
+     * el correo sí hubiera salido.
      */
     public function sendOtp(Model $model, string $code): void
     {
         try {
 
             Mail::to($model->email)
-                ->send(new OtpMail($code, $model->first_name ?? null));
+                ->queue(new OtpMail($code, $model->first_name ?? null));
 
         } catch (Throwable $e) {
 
